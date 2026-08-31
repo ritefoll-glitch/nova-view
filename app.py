@@ -20,10 +20,9 @@ except (ImportError, IOError):
     pass
 
 # ================== НАСТРОЙКИ ==================
-# ВАШ ТОКЕН (вставлен напрямую)
 BOT_TOKEN = "8916962635:AAF11DIksn5xblqbiJF8fjVXDxuewyMMaPc"
+APP_URL = "https://nova3dview.netlify.app"   # <--- ваш сайт на Netlify
 
-# Данные для R2 (через переменные окружения, чтобы не светить в коде)
 R2_ACCESS_KEY = os.environ.get("R2_ACCESS_KEY")
 R2_SECRET_KEY = os.environ.get("R2_SECRET_KEY")
 R2_BUCKET_NAME = os.environ.get("R2_BUCKET_NAME", "nova-models")
@@ -73,17 +72,17 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         logger.info(f"Файл {file_name} загружен в R2")
 
-        model_name = file_name[:-4]
+        model_name = file_name[:-4]  # убираем .glb
         encoded_file_name = quote(file_name)
         encoded_model_name = quote(model_name)
 
         telegram_link = f"https://t.me/Nova3DViewerBot/viewer?startapp=model={encoded_model_name}"
-        direct_link = f"{R2_PUBLIC_URL}/{encoded_file_name}"
+        browser_link = f"{APP_URL}/?model={encoded_model_name}"  # <--- новая ссылка
 
         await status_message.edit_text(
             f"✅ Файл **{file_name}** загружен в облако!\n\n"
-            f"🔗 **Ссылка для клиента:**\n{telegram_link}\n\n"
-            f"🌐 **Прямая ссылка на файл:**\n{direct_link}"
+            f"🔗 **Ссылка для клиента (Telegram):**\n{telegram_link}\n\n"
+            f"🌐 **Открыть в браузере:**\n{browser_link}"
         )
 
     except Exception as e:
@@ -92,12 +91,11 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "👋 Привет! Отправь мне файл .glb, и я загружу его в облако и дам ссылку."
+        "👋 Привет! Отправь мне файл .glb, и я загружу его в облако и дам ссылку для просмотра."
     )
 
 # ================== ЗАПУСК БОТА ==================
 def run_bot():
-    # Принудительно удаляем вебхук перед запуском polling
     bot = Bot(token=BOT_TOKEN)
     try:
         asyncio.run(bot.delete_webhook(drop_pending_updates=True))
