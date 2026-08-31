@@ -5,7 +5,7 @@ from botocore.client import Config
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
-# ================== НАСТРОЙКИ (из переменных окружения) ==================
+# ================== НАСТРОЙКИ ==================
 BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 R2_ACCESS_KEY = os.environ.get("R2_ACCESS_KEY")
 R2_SECRET_KEY = os.environ.get("R2_SECRET_KEY")
@@ -56,7 +56,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         logger.info(f"Файл {file_name} загружен в R2")
 
-        model_name = file_name[:-4]  # убираем .glb
+        model_name = file_name[:-4]
         telegram_link = f"https://t.me/Nova3DViewerBot/viewer?startapp=model={model_name}"
         direct_link = f"{R2_PUBLIC_URL}/{file_name}"
 
