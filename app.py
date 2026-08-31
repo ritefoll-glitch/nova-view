@@ -7,7 +7,7 @@ from urllib.parse import quote
 import boto3
 from botocore.client import Config
 from flask import Flask
-from telegram import Update, Bot
+from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 # ================== БЛОКИРОВКА ОТ ДУБЛИРОВАНИЯ ==================
@@ -20,11 +20,10 @@ except (ImportError, IOError):
     pass
 
 # ================== НАСТРОЙКИ ==================
-BOT_TOKEN = "8957265857:AAG2ZXZ-AWvMrjGmUZFfr-SP-cjcQKVLra4"  # твой токен
-APP_SHORT_NAME = "viewer4"   # имя приложения в BotFather
-APP_URL = "https://nova3dview.netlify.app"   # твой сайт
+BOT_TOKEN = "8957265857:AAG2ZXZ-AWvMrjGmUZFfr-SP-cjcQKVLra4"
+APP_SHORT_NAME = "viewer4"
+APP_URL = "https://nova3dview.netlify.app"
 
-# R2 (из переменных окружения Render)
 R2_ACCESS_KEY = os.environ.get("R2_ACCESS_KEY")
 R2_SECRET_KEY = os.environ.get("R2_SECRET_KEY")
 R2_BUCKET_NAME = os.environ.get("R2_BUCKET_NAME", "nova-models")
@@ -32,7 +31,7 @@ R2_PUBLIC_URL = os.environ.get("R2_PUBLIC_URL")
 R2_ENDPOINT = os.environ.get("R2_ENDPOINT")
 
 if not all([R2_ACCESS_KEY, R2_SECRET_KEY, R2_PUBLIC_URL, R2_ENDPOINT]):
-    raise ValueError("❌ Не все переменные для R2 заданы!")
+    raise ValueError("❌ Не все переменные окружения для R2 заданы!")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -74,17 +73,22 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         logger.info(f"Файл {file_name} загружен в R2")
 
-        model_name = file_name[:-4]  # убираем .glb
+        model_name = file_name[:-4]
         encoded = quote(model_name)
         cache = int(time.time())
 
-        tg_link = f"https://t.me/Nova3DViewerProBot/{APP_SHORT_NAME}?startapp=model={encoded}&v={cache}"
-        browser_link = f"{APP_URL}/?model={encoded}&v={cache}"
+        preview_url = f"{APP_URL}/preview.html?model={encoded}&v={cache}"
+        full_app_link = f"https://t.me/Nova3DViewerProBot/{APP_SHORT_NAME}?startapp=model={encoded}&v={cache}"
+
+        keyboard = [
+            [InlineKeyboardButton("🔍 Посмотреть 3D", web_app=WebAppInfo(url=preview_url))],
+            [InlineKeyboardButton("🚀 Открыть полную версию", url=full_app_link)]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
 
         await status_msg.edit_text(
-            f"✅ Файл **{file_name}** загружен!\n\n"
-            f"🔗 **Telegram:**\n{tg_link}\n\n"
-            f"🌐 **Браузер:**\n{browser_link}"
+            f"✅ Файл **{file_name}** загружен!\nНажмите на кнопку, чтобы посмотреть модель:",
+            reply_markup=reply_markup
         )
 
     except Exception as e:
@@ -93,7 +97,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "👋 Отправь .glb файл, получу ссылки."
+        "👋 Отправь .glb файл, и я дам кнопку для просмотра."
     )
 
 # ================== ЗАПУСК БОТА ==================
