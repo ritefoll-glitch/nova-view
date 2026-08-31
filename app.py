@@ -3,6 +3,7 @@ import sys
 import logging
 import multiprocessing
 import asyncio
+import time  # <--- добавлено
 from urllib.parse import quote
 import boto3
 from botocore.client import Config
@@ -21,7 +22,7 @@ except (ImportError, IOError):
 
 # ================== НАСТРОЙКИ ==================
 BOT_TOKEN = "8916962635:AAF11DIksn5xblqbiJF8fjVXDxuewyMMaPc"
-APP_URL = "https://nova3dview.netlify.app"   # <--- ваш сайт на Netlify
+APP_URL = "https://nova3dview.netlify.app"
 
 R2_ACCESS_KEY = os.environ.get("R2_ACCESS_KEY")
 R2_SECRET_KEY = os.environ.get("R2_SECRET_KEY")
@@ -73,11 +74,13 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.info(f"Файл {file_name} загружен в R2")
 
         model_name = file_name[:-4]  # убираем .glb
-        encoded_file_name = quote(file_name)
         encoded_model_name = quote(model_name)
 
-        telegram_link = f"https://t.me/Nova3DViewerBot/viewer?startapp=model={encoded_model_name}"
-        browser_link = f"{APP_URL}/?model={encoded_model_name}"  # <--- новая ссылка
+        # Добавляем уникальный параметр v (временная метка) для обхода кеша
+        cache_buster = int(time.time())
+
+        telegram_link = f"https://t.me/Nova3DViewerBot/viewer?startapp=model={encoded_model_name}&v={cache_buster}"
+        browser_link = f"{APP_URL}/?model={encoded_model_name}&v={cache_buster}"
 
         await status_message.edit_text(
             f"✅ Файл **{file_name}** загружен в облако!\n\n"
