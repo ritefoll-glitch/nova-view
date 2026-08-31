@@ -21,7 +21,7 @@ except (ImportError, IOError):
     pass
 
 # ================== НАСТРОЙКИ ==================
-BOT_TOKEN = "8916962635:AAF11DIksn5xblqbiJF8fjVXDxuewyMMaPc"
+BOT_TOKEN = "8957265857:AAG6VqtUQnfNu1-UzL_s4fMvzKjEyqspXaU"
 APP_URL = "https://nova3dview.netlify.app"
 
 R2_ACCESS_KEY = os.environ.get("R2_ACCESS_KEY")
