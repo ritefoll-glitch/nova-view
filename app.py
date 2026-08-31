@@ -80,7 +80,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cache_buster = int(time.time())
 
         # Новая ссылка с viewer2
-        telegram_link = f"https://t.me/Nova3DViewerProBot/{APP_SHORT_NAME}?startapp=model={encoded_model_name}&v={cache_buster}"
+        telegram_link = f"https://t.me/Nova3DViewerProBot/viewer2?startapp=model={encoded_model_name}&v={cache_buster}"
         browser_link = f"{APP_URL}/?model={encoded_model_name}&v={cache_buster}"
 
         await status_message.edit_text(
