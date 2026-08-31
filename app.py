@@ -3,7 +3,7 @@ import sys
 import logging
 import multiprocessing
 import asyncio
-import time  # <--- добавлено
+import time
 from urllib.parse import quote
 import boto3
 from botocore.client import Config
@@ -23,6 +23,8 @@ except (ImportError, IOError):
 # ================== НАСТРОЙКИ ==================
 BOT_TOKEN = "8957265857:AAG6VqtUQnfNu1-UzL_s4fMvzKjEyqspXaU"
 APP_URL = "https://nova3dview.netlify.app"
+# НОВОЕ КОРОТКОЕ ИМЯ ПРИЛОЖЕНИЯ (viewer2)
+APP_SHORT_NAME = "viewer2"
 
 R2_ACCESS_KEY = os.environ.get("R2_ACCESS_KEY")
 R2_SECRET_KEY = os.environ.get("R2_SECRET_KEY")
@@ -73,13 +75,12 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         logger.info(f"Файл {file_name} загружен в R2")
 
-        model_name = file_name[:-4]  # убираем .glb
+        model_name = file_name[:-4]
         encoded_model_name = quote(model_name)
-
-        # Добавляем уникальный параметр v (временная метка) для обхода кеша
         cache_buster = int(time.time())
 
-        telegram_link = f"https://t.me/Nova3DViewerBot/viewer?startapp=model={encoded_model_name}&v={cache_buster}"
+        # Новая ссылка с viewer2
+        telegram_link = f"https://t.me/Nova3DViewerProBot/{APP_SHORT_NAME}?startapp=model={encoded_model_name}&v={cache_buster}"
         browser_link = f"{APP_URL}/?model={encoded_model_name}&v={cache_buster}"
 
         await status_message.edit_text(
@@ -94,7 +95,8 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "👋 Привет! Отправь мне файл .glb, и я загружу его в облако и дам ссылку для просмотра."
+        "👋 Привет! Отправь мне файл .glb, и я загружу его в облако и дам ссылку для просмотра.\n\n"
+        "📌 Бот создан для компании NOVA group of companies."
     )
 
 # ================== ЗАПУСК БОТА ==================
