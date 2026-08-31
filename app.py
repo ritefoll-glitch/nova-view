@@ -2,34 +2,33 @@ import os
 import sys
 import logging
 import multiprocessing
+import asyncio
 from urllib.parse import quote
 import boto3
 from botocore.client import Config
 from flask import Flask
-from telegram import Update
+from telegram import Update, Bot
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 # ================== БЛОКИРОВКА ОТ ДУБЛИРОВАНИЯ ==================
-# Это гарантирует, что на сервере будет запущен только один экземпляр бота
 try:
     import fcntl
     with open('/tmp/bot.lock', 'w') as f:
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         f.write(str(os.getpid()))
 except (ImportError, IOError):
-    # На Windows fcntl недоступен, просто пропускаем
     pass
 
 # ================== НАСТРОЙКИ ==================
-BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+# ВАШ ТОКЕН (вставлен напрямую)
+BOT_TOKEN = "8916962635:AAF11DIksn5xblqbiJF8fjVXDxuewyMMaPc"
+
+# Данные для R2 (через переменные окружения, чтобы не светить в коде)
 R2_ACCESS_KEY = os.environ.get("R2_ACCESS_KEY")
 R2_SECRET_KEY = os.environ.get("R2_SECRET_KEY")
 R2_BUCKET_NAME = os.environ.get("R2_BUCKET_NAME", "nova-models")
 R2_PUBLIC_URL = os.environ.get("R2_PUBLIC_URL")
 R2_ENDPOINT = os.environ.get("R2_ENDPOINT")
-
-if not BOT_TOKEN:
-    raise ValueError("❌ TELEGRAM_TOKEN не задан!")
 
 if not all([R2_ACCESS_KEY, R2_SECRET_KEY, R2_PUBLIC_URL, R2_ENDPOINT]):
     raise ValueError("❌ Не все переменные окружения для R2 заданы!")
@@ -63,11 +62,9 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status_message = await update.message.reply_text(f"⏳ Загружаю {file_name} в облако...")
 
     try:
-        # Скачиваем файл в память
         new_file = await document.get_file()
         file_data = await new_file.download_as_bytearray()
 
-        # Загружаем в R2
         s3_client.put_object(
             Bucket=R2_BUCKET_NAME,
             Key=file_name,
@@ -76,15 +73,13 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         logger.info(f"Файл {file_name} загружен в R2")
 
-        # Формируем ссылки (экранируем имя файла для URL)
-        model_name = file_name[:-4]  # убираем .glb
+        model_name = file_name[:-4]
         encoded_file_name = quote(file_name)
         encoded_model_name = quote(model_name)
 
         telegram_link = f"https://t.me/Nova3DViewerBot/viewer?startapp=model={encoded_model_name}"
         direct_link = f"{R2_PUBLIC_URL}/{encoded_file_name}"
 
-        # Отправляем сообщение без обратных кавычек
         await status_message.edit_text(
             f"✅ Файл **{file_name}** загружен в облако!\n\n"
             f"🔗 **Ссылка для клиента:**\n{telegram_link}\n\n"
@@ -100,9 +95,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "👋 Привет! Отправь мне файл .glb, и я загружу его в облако и дам ссылку."
     )
 
-# ================== ЗАПУСК БОТА В ОТДЕЛЬНОМ ПРОЦЕССЕ ==================
+# ================== ЗАПУСК БОТА ==================
 def run_bot():
-    """Функция, запускающая бота в режиме polling"""
+    # Принудительно удаляем вебхук перед запуском polling
+    bot = Bot(token=BOT_TOKEN)
+    try:
+        asyncio.run(bot.delete_webhook(drop_pending_updates=True))
+        logger.info("✅ Вебхук удалён, старые обновления сброшены.")
+    except Exception as e:
+        logger.warning(f"⚠️ Не удалось удалить вебхук: {e}")
+
     application = Application.builder().token(BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.Document.ALL, handle_document))
@@ -110,7 +112,7 @@ def run_bot():
     logger.info("🚀 Бот запущен и слушает сообщения...")
     application.run_polling()
 
-# ================== FLASK-СЕРВЕР ДЛЯ HEALTHCHECK ==================
+# ================== FLASK ==================
 app = Flask(__name__)
 
 @app.route('/')
@@ -123,11 +125,9 @@ def health():
 
 # ================== ТОЧКА ВХОДА ==================
 if __name__ == '__main__':
-    # Запускаем бота в отдельном процессе
     bot_process = multiprocessing.Process(target=run_bot)
     bot_process.daemon = True
     bot_process.start()
 
-    # Запускаем Flask-сервер (блокирующий) в основном процессе
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
