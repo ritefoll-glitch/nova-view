@@ -6,6 +6,7 @@ from botocore.client import Config
 from flask import Flask
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from urllib.parse import quote
 
 # ================== НАСТРОЙКИ ==================
 BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
@@ -59,8 +60,8 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.info(f"Файл {file_name} загружен в R2")
 
         model_name = file_name[:-4]
-        telegram_link = f"https://t.me/Nova3DViewerBot/viewer?startapp=model={model_name}"
-        direct_link = f"{R2_PUBLIC_URL}/{file_name}"
+        telegram_link = f"https://t.me/Nova3DViewerBot/viewer?startapp=model={quote(model_name)}"
+        direct_link = f"{R2_PUBLIC_URL}/{quote(file_name)}"
 
         await status_message.edit_text(
             f"✅ Файл **{file_name}** загружен в облако!\n\n"
