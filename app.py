@@ -21,7 +21,7 @@ except (ImportError, IOError):
     pass
 
 # ================== НАСТРОЙКИ ==================
-BOT_TOKEN = "8957265857:AAG6VqtUQnfNu1-UzL_s4fMvzKjEyqspXaU"
+BOT_TOKEN = "8957265857:AAG2ZXZ-AWvMrjGmUZFfr-SP-cjcQKVLra4"
 APP_URL = "https://nova3dview.netlify.app"
 # НОВОЕ КОРОТКОЕ ИМЯ ПРИЛОЖЕНИЯ (viewer2)
 APP_SHORT_NAME = "viewer4"
