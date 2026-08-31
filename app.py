@@ -20,7 +20,7 @@ except (ImportError, IOError):
     pass
 
 # ================== НАСТРОЙКИ ==================
-BOT_TOKEN = "8957265857:AAG6VqtUQnfNu1-UzL_s4fMvzKjEyqspXaU"  # твой токен
+BOT_TOKEN = "8957265857:AAG2ZXZ-AWvMrjGmUZFfr-SP-cjcQKVLra4"  # твой токен
 APP_SHORT_NAME = "viewer4"   # имя приложения в BotFather
 APP_URL = "https://nova3dview.netlify.app"   # твой сайт
 
