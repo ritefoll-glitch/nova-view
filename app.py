@@ -66,8 +66,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await status_message.edit_text(
     f"✅ Файл **{file_name}** загружен в облако!\n\n"
     f"🔗 **Ссылка для клиента:**\n{telegram_link}\n\n"
-    f"🌐 **Прямая ссылка на файл:**\n{direct_link}",
-    parse_mode='Markdown'
+    f"🌐 **Прямая ссылка на файл:**\n{direct_link}"
         )
 
     except Exception as e:
