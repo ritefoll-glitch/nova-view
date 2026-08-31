@@ -64,9 +64,10 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         direct_link = f"{R2_PUBLIC_URL}/{quote(file_name)}"
 
         await status_message.edit_text(
-            f"✅ Файл **{file_name}** загружен в облако!\n\n"
-            f"🔗 **Ссылка для клиента:**\n`{telegram_link}`\n\n"
-            f"🌐 **Прямая ссылка на файл:**\n`{direct_link}`"
+    f"✅ Файл **{file_name}** загружен в облако!\n\n"
+    f"🔗 **Ссылка для клиента:**\n{telegram_link}\n\n"
+    f"🌐 **Прямая ссылка на файл:**\n{direct_link}",
+    parse_mode='Markdown'
         )
 
     except Exception as e:
