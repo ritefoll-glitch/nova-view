@@ -24,7 +24,7 @@ except (ImportError, IOError):
 BOT_TOKEN = "8957265857:AAG6VqtUQnfNu1-UzL_s4fMvzKjEyqspXaU"
 APP_URL = "https://nova3dview.netlify.app"
 # НОВОЕ КОРОТКОЕ ИМЯ ПРИЛОЖЕНИЯ (viewer2)
-APP_SHORT_NAME = "viewer2"
+APP_SHORT_NAME = "viewer4"
 
 R2_ACCESS_KEY = os.environ.get("R2_ACCESS_KEY")
 R2_SECRET_KEY = os.environ.get("R2_SECRET_KEY")
@@ -80,7 +80,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cache_buster = int(time.time())
 
         # Новая ссылка с viewer2
-        telegram_link = f"https://t.me/Nova3DViewerProBot/viewer2?startapp=model={encoded_model_name}&v={cache_buster}"
+        telegram_link = f"https://t.me/Nova3DViewerProBot/{APP_SHORT_NAME}?startapp=model={encoded_model_name}&v={cache_buster}"
         browser_link = f"{APP_URL}/?model={encoded_model_name}&v={cache_buster}"
 
         await status_message.edit_text(
